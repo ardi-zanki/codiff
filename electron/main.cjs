@@ -54,7 +54,11 @@ const {
   writeConfig,
 } = require('./config.cjs');
 const { readReviewAssistantReply } = require('./review-assist.cjs');
-const { getRepositoryWindowTitle } = require('./window-title.cjs');
+const {
+  getPlanWindowTitle,
+  getRepositoryWindowTitle,
+  restoreRepositoryWindowTitleAfterLoad,
+} = require('./window-title.cjs');
 const {
   findMatchingWindowIdentity,
   getWindowIdentity,
@@ -995,11 +999,14 @@ const createWindow = (
   window.webContents.on('did-finish-load', () => {
     const currentLaunchOptions = windowLaunchOptions.get(webContentsId);
     if (!currentLaunchOptions?.planFile) {
+      // The renderer's static HTML title can replace the title set while repository state loads.
+      // Reapply the resolved title after every navigation so the native window list stays useful.
+      void restoreRepositoryWindowTitleAfterLoad(window, initialRepositoryState).catch(() => {});
       return;
     }
     // The renderer's static HTML title replaces constructor titles during navigation.
     // Set this after every plan load so native window lists keep the plan filename.
-    window.setTitle(`Codiff Plan – ${basename(currentLaunchOptions.planFile)}`);
+    window.setTitle(getPlanWindowTitle(currentLaunchOptions.planFile));
     void readMarkdownDocument(
       { kind: 'plan', path: currentLaunchOptions.planFile },
       getMarkdownDocumentContext(webContentsId),

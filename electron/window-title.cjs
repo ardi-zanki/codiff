@@ -3,6 +3,9 @@
 const { basename } = require('node:path');
 const { parseReviewUrl } = require('./review-source.cjs');
 
+/** @typedef {Pick<import('../core/types.ts').RepositoryState, 'root' | 'source'>} WindowRepositoryState */
+/** @typedef {{isDestroyed: () => boolean, setTitle: (title: string) => void}} WindowTitleTarget */
+
 /** @param {import('../core/types.ts').ReviewSource} source */
 const getWindowSourceTitle = (source) =>
   source.type === 'working-tree'
@@ -15,13 +18,37 @@ const getWindowSourceTitle = (source) =>
           ? `${source.base}${source.symmetric ? '...' : '..'}${source.head}`
           : source.ref;
 
+/** @param {string} title */
+const getCodiffWindowTitle = (title) => `${title} · Codiff`;
+
+/** @param {string} planFile */
+const getPlanWindowTitle = (planFile) => getCodiffWindowTitle(basename(planFile));
+
 /**
- * @param {import('../core/types.ts').RepositoryState} state
+ * @param {WindowRepositoryState} state
  */
 const getRepositoryWindowTitle = (state) => {
   // Use the resolved source so aliases such as HEAD and a PR URL become the view the user opened.
   const sourceTitle = getWindowSourceTitle(state.source);
-  return `Codiff – ${basename(state.root)}${sourceTitle ? `/${sourceTitle}` : ''}`;
+  return getCodiffWindowTitle(`${basename(state.root)}${sourceTitle ? `/${sourceTitle}` : ''}`);
 };
 
-module.exports = { getRepositoryWindowTitle };
+/**
+ * @param {WindowTitleTarget} target
+ * @param {Promise<WindowRepositoryState> | null | undefined} initialRepositoryState
+ */
+const restoreRepositoryWindowTitleAfterLoad = async (target, initialRepositoryState) => {
+  if (!initialRepositoryState) {
+    return;
+  }
+  const state = await initialRepositoryState;
+  if (!target.isDestroyed()) {
+    target.setTitle(getRepositoryWindowTitle(state));
+  }
+};
+
+module.exports = {
+  getPlanWindowTitle,
+  getRepositoryWindowTitle,
+  restoreRepositoryWindowTitleAfterLoad,
+};
