@@ -1364,12 +1364,15 @@ export default function App() {
   }, [mainModeRef]);
 
   const selectSource = useCallback(
-    (source: ReviewSource) => {
+    (
+      source: ReviewSource,
+      { throwOnError = false }: { throwOnError?: boolean } = {},
+    ): Promise<void> => {
       const currentState = stateRef.current;
       const sourceKey = getSourceKey(source);
       const currentDisplayKey = getSourceKey(pendingSource ?? currentState?.source ?? source);
       if (currentDisplayKey === sourceKey) {
-        return;
+        return Promise.resolve();
       }
 
       saveCurrentSourceSession();
@@ -1383,7 +1386,7 @@ export default function App() {
       setScrollTarget(null);
       setMainMode('review');
 
-      window.codiff
+      return window.codiff
         .getRepositoryState(source)
         .then((nextState) => {
           if (sourceRequestRef.current !== request) {
@@ -1438,9 +1441,14 @@ export default function App() {
         })
         .catch((error: unknown) => {
           if (sourceRequestRef.current === request) {
-            setLoadError(getRepositoryLoadError(error));
+            if (!throwOnError) {
+              setLoadError(getRepositoryLoadError(error));
+            }
             setWalkthroughLoading(false);
             setPendingSource(null);
+          }
+          if (throwOnError) {
+            throw error;
           }
         });
     },
@@ -1469,14 +1477,15 @@ export default function App() {
     async (kind: OpenReviewSourceKind, value: string) => {
       if (kind === 'pull-request') {
         const url = await window.codiff.resolvePullRequestUrl(value);
-        selectSource({ type: 'pull-request', url });
+        await selectSource({ type: 'pull-request', url }, { throwOnError: true });
         return;
       }
 
-      selectSource(
+      await selectSource(
         kind === 'branch'
           ? { ref: value, type: 'branch-working-tree' }
           : { ref: value, type: 'commit' },
+        { throwOnError: true },
       );
     },
     [selectSource],

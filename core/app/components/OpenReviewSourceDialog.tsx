@@ -1,5 +1,6 @@
 import { useCallback, useState, type FormEvent } from 'react';
 import type { OpenReviewSourceKind } from '../../types.ts';
+import { Button } from './Button.tsx';
 
 const dialogCopy: Record<
   OpenReviewSourceKind,
@@ -90,36 +91,38 @@ export function OpenReviewSourceDialog({
           <h2 id="open-review-source-title">{copy.title}</h2>
           <p id="open-review-source-description">{copy.description}</p>
         </div>
-        <label className="open-review-source-label" htmlFor="open-review-source-input">
-          {copy.label}
-        </label>
-        <input
-          aria-describedby={error ? 'open-review-source-error' : undefined}
-          autoFocus
-          className="open-review-source-input"
-          disabled={submitting}
-          id="open-review-source-input"
-          onChange={(event) => {
-            setValue(event.currentTarget.value);
-            setError(null);
-          }}
-          placeholder={copy.placeholder}
-          spellCheck={false}
-          type="text"
-          value={value}
-        />
-        {error ? (
-          <p className="open-review-source-error" id="open-review-source-error" role="alert">
-            {error}
-          </p>
-        ) : null}
+        <div className="open-review-source-field">
+          <label className="open-review-source-label" htmlFor="open-review-source-input">
+            {copy.label}
+          </label>
+          <input
+            aria-describedby={error ? 'open-review-source-error' : undefined}
+            autoFocus
+            className="open-review-source-input"
+            disabled={submitting}
+            id="open-review-source-input"
+            onChange={(event) => {
+              setValue(event.currentTarget.value);
+              setError(null);
+            }}
+            placeholder={copy.placeholder}
+            spellCheck={false}
+            type="text"
+            value={value}
+          />
+          {error ? (
+            <p className="open-review-source-error" id="open-review-source-error" role="alert">
+              {error}
+            </p>
+          ) : null}
+        </div>
         <div className="open-review-source-actions">
-          <button disabled={submitting} onClick={onClose} type="button">
+          <Button disabled={submitting} onClick={onClose} type="button">
             Cancel
-          </button>
-          <button disabled={submitting} type="submit">
+          </Button>
+          <Button disabled={submitting} type="submit">
             {submitting ? 'Opening…' : 'Open'}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

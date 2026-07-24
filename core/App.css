@@ -3893,7 +3893,6 @@ diffs-container .review-comment-thread {
 }
 
 .shortcuts-help-overlay {
-  backdrop-filter: blur(4px);
   align-items: center;
   backdrop-filter: blur(4px);
   background: rgb(255 255 255 / 0.28);
@@ -4016,8 +4015,8 @@ diffs-container .review-comment-thread {
   text-align: center;
 }
 
-.command-bar-overlay {
-  backdrop-filter: blur(4px);
+.command-bar-overlay,
+.open-review-source-overlay {
   align-items: flex-start;
   backdrop-filter: blur(4px);
   background: rgb(255 255 255 / 0.28);
@@ -4026,20 +4025,26 @@ diffs-container .review-comment-thread {
   justify-content: center;
   padding-top: 180px;
   position: fixed;
+}
+
+.command-bar-overlay {
   z-index: 100;
 }
 
-:root[data-theme='dark'] .command-bar-overlay {
+:root[data-theme='dark'] .command-bar-overlay,
+:root[data-theme='dark'] .open-review-source-overlay {
   background: rgb(0 0 0 / 0.16);
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) .command-bar-overlay {
+  :root:not([data-theme='light']) .command-bar-overlay,
+  :root:not([data-theme='light']) .open-review-source-overlay {
     background: rgb(0 0 0 / 0.16);
   }
 }
 
-.command-bar {
+.command-bar,
+.open-review-source-dialog {
   backdrop-filter: blur(28px) saturate(1.4);
   background: color-mix(in srgb, var(--code-bg) 88%, transparent);
   border: 1px solid var(--file-border);
@@ -4050,6 +4055,9 @@ diffs-container .review-comment-thread {
     0 16px 46px -30px rgb(0 0 0 / 0.72),
     0 12px 24px -18px rgb(0 0 0 / 0.9);
   corner-shape: squircle;
+}
+
+.command-bar {
   display: flex;
   flex-direction: column;
   max-height: 400px;
@@ -4144,48 +4152,22 @@ diffs-container .review-comment-thread {
 }
 
 .open-review-source-overlay {
-  align-items: flex-start;
-  backdrop-filter: blur(4px);
-  background: rgb(255 255 255 / 0.28);
-  display: flex;
-  inset: 0;
-  justify-content: center;
-  padding-top: 180px;
-  position: fixed;
+  padding-inline: 16px;
   z-index: 101;
 }
 
-:root[data-theme='dark'] .open-review-source-overlay {
-  background: rgb(0 0 0 / 0.16);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) .open-review-source-overlay {
-    background: rgb(0 0 0 / 0.16);
-  }
-}
-
 .open-review-source-dialog {
-  backdrop-filter: blur(28px) saturate(1.4);
-  background: color-mix(in srgb, var(--code-bg) 88%, transparent);
-  border: 1px solid var(--file-border);
-  border-radius: 28px;
-  box-shadow:
-    0 0 0 1px rgb(255 255 255 / 0.12) inset,
-    0 18px 80px -54px rgb(0 0 0 / 0.78),
-    0 16px 46px -30px rgb(0 0 0 / 0.72),
-    0 12px 24px -18px rgb(0 0 0 / 0.9);
-  corner-shape: squircle;
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.16);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 18px;
   padding: 20px;
-  width: min(440px, 90vw);
+  width: min(520px, 100%);
 }
 
 .open-review-source-heading {
   display: grid;
-  gap: 4px;
+  gap: 5px;
 }
 
 .open-review-source-heading h2 {
@@ -4198,19 +4180,23 @@ diffs-container .review-comment-thread {
   font: 13px/1.4 var(--font-sans);
 }
 
+.open-review-source-field {
+  display: grid;
+  gap: 7px;
+}
+
 .open-review-source-label {
   font: 600 12px/1.35 var(--font-sans);
-  margin-top: 4px;
 }
 
 .open-review-source-input {
   background: rgb(127 127 127 / 0.1);
   border: 0;
-  border-radius: 12px;
+  border-radius: 17px;
   color: var(--text);
   corner-shape: squircle;
   font: 14px/1.35 var(--font-sans);
-  height: 36px;
+  height: 34px;
   outline: none;
   padding: 0 12px;
   width: 100%;
@@ -4230,28 +4216,7 @@ diffs-container .review-comment-thread {
 
 .open-review-source-actions {
   display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-  margin-top: 6px;
-}
-
-.open-review-source-actions button {
-  background: rgb(127 127 127 / 0.1);
-  border-radius: 10px;
-  corner-shape: squircle;
-  cursor: pointer;
-  font: 13px/1.35 var(--font-sans);
-  padding: 7px 12px;
-}
-
-.open-review-source-actions button:last-child {
-  background: var(--tree-selection-focus);
-  color: white;
-}
-
-.open-review-source-actions button:disabled {
-  cursor: default;
-  opacity: 0.55;
+  justify-content: space-between;
 }
 
 @media (max-width: 720px) {

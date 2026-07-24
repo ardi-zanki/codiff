@@ -24,7 +24,7 @@ import type {
   WalkthroughProgressEvent,
 } from '../types.ts';
 import { createChangedFile } from './helpers/fixtures.ts';
-import { renderReact, waitFor } from './helpers/react.tsx';
+import { renderReact, setInputValue, waitFor } from './helpers/react.tsx';
 
 const reactActEnvironment = globalThis as typeof globalThis & {
   ResizeObserver?: typeof ResizeObserver;
@@ -433,6 +433,48 @@ test('stale persisted collapsed sidebar state does not hide the sidebar on launc
     true,
   );
   expect(app.container.querySelector('.review-top-bar')).toBe(topBar);
+});
+
+test('keeps source-loading errors in the open-source dialog', async () => {
+  const openReviewSourceListeners: Array<Parameters<Window['codiff']['onOpenReviewSource']>[0]> =
+    [];
+  const getRepositoryState = vi.fn(async (source?: ReviewSource) => {
+    if (source?.type === 'branch-working-tree') {
+      throw new Error(`Branch "${source.ref}" does not exist in this repository.`);
+    }
+    return repositoryState;
+  });
+  window.codiff = createCodiffMock({
+    getRepositoryState,
+    onOpenReviewSource: vi.fn((callback) => {
+      openReviewSourceListeners.push(callback);
+      return () => {};
+    }),
+  });
+
+  await using app = await renderReact(<App />);
+  await waitFor(() => expect(app.container.querySelector('.app-shell')).not.toBeNull());
+
+  await act(async () => openReviewSourceListeners[0]?.('branch'));
+  const input = app.container.querySelector<HTMLInputElement>('#open-review-source-input');
+  const form = app.container.querySelector('form.open-review-source-dialog');
+  if (!input || !form) {
+    throw new Error('Expected the open branch dialog.');
+  }
+
+  await setInputValue(input, 'missing-branch');
+  await act(async () => {
+    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+  });
+
+  await waitFor(() => {
+    expect(app.container.querySelector('[role="alert"]')?.textContent).toBe(
+      'Branch "missing-branch" does not exist in this repository.',
+    );
+  });
+  expect(app.container.querySelector('.open-review-source-dialog')).not.toBeNull();
+  expect(app.container.querySelector('.app-shell')).not.toBeNull();
+  expect(app.container.textContent).not.toContain('Unable to read repository');
 });
 
 test('empty repository state fills the review pane for centered layout', async () => {
