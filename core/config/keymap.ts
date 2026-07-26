@@ -154,13 +154,13 @@ type ShortcutEvent = Pick<
 >;
 
 // Necessary but not sufficient evidence that Option swallowed the character:
-// it composed one outside ASCII ("Ω" for Option+z, "÷" for Option+/) or armed a
-// dead key. Layouts also produce non-ASCII characters natively, which is why
-// the caller additionally requires that nothing matched them. A value like
-// `Unidentified` carries no key information at all and is excluded, so the
-// shortcut does not match rather than guessing at a key position.
-const isDeadOrNonAsciiKey = (key: string): boolean =>
-  key === 'Dead' || (key.length === 1 && key.charCodeAt(0) > 0x7e);
+// it produced a printable character (which may still be ASCII, such as "@")
+// or armed a dead key. Layouts also produce characters natively, which is why
+// the caller additionally requires that nothing matched the reported value. A
+// named value like `Unidentified` carries no character information and is
+// excluded, so the shortcut does not match rather than guessing at a key
+// position.
+const isDeadOrCharacterKey = (key: string): boolean => key === 'Dead' || key.length === 1;
 
 // A key-spelled combo additionally requires the key it named: two keys may
 // type the same character with Shift, and `Shift+/` means only one of them.
@@ -211,7 +211,7 @@ const matchesBinding = (
 const canFallBackToPhysicalKey = (event: ShortcutEvent, keymap: CodiffKeymap): boolean =>
   event.altKey &&
   isMac() &&
-  isDeadOrNonAsciiKey(event.key) &&
+  isDeadOrCharacterKey(event.key) &&
   !Object.values(keymap).some((binding) => matchesBinding(event, binding, matchesTypedKey));
 
 export const matchesShortcut = (

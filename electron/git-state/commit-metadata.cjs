@@ -22,7 +22,7 @@ const parseNumstat = (raw) => {
   const stats = new Map();
   const parts = raw.split('\0');
 
-  for (let index = 0; index < parts.length; ) {
+  for (let index = 0; index < parts.length;) {
     const header = parts[index++];
     if (!header) {
       // `-z` output ends with a NUL, which produces one empty trailing record.

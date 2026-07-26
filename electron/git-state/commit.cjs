@@ -52,7 +52,7 @@ const parseCommitNameStatus = (raw, options = {}) => {
   /** @type {Array<Pick<StatusItem, 'oldPath' | 'path' | 'status'>>} */
   const files = [];
 
-  for (let index = 0; index < parts.length; ) {
+  for (let index = 0; index < parts.length;) {
     const statusCode = parts[index++];
     const statusType = statusCode[0];
 

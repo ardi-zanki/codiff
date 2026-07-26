@@ -43,6 +43,42 @@ test('matches an Alt shortcut bound to a digit', () => {
   expect(matched).toBe(true);
 });
 
+test('matches an Alt shortcut when Option produces an ASCII character', () => {
+  // Arrange: Option+L produces "@" on a German macOS layout.
+  const { keydown, keymap } = createTestContext({ toggleWordWrap: 'Alt+l' });
+  applyKeyboardLayout(germanLayout);
+
+  // Act
+  const matched = matchesShortcut(
+    keydown({ altKey: true, code: 'KeyL', key: '@' }),
+    keymap,
+    'toggleWordWrap',
+  );
+
+  // Assert
+  expect(matched).toBe(true);
+});
+
+test('lets an ASCII Option character binding suppress the position fallback', () => {
+  // Arrange: an explicit Alt+@ binding owns Option+L even though that press
+  // sits on the physical key for Alt+l.
+  const { keydown, keymap } = createTestContext({
+    closeSearch: 'Alt+@',
+    toggleWordWrap: 'Alt+l',
+  });
+  applyKeyboardLayout(germanLayout);
+  const event = keydown({ altKey: true, code: 'KeyL', key: '@' });
+
+  // Act
+  const matched = {
+    closeSearch: matchesShortcut(event, keymap, 'closeSearch'),
+    toggleWordWrap: matchesShortcut(event, keymap, 'toggleWordWrap'),
+  };
+
+  // Assert
+  expect(matched).toEqual({ closeSearch: true, toggleWordWrap: false });
+});
+
 test('does not match an Alt shortcut when a different physical key is pressed', () => {
   // Arrange
   const { keydown, keymap } = createTestContext();

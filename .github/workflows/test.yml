@@ -23,6 +23,10 @@ jobs:
         node-version: [24]
     steps:
       - uses: actions/checkout@v4
+      - name: Install native-keymap dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes libx11-dev libxkbfile-dev
       - uses: voidzero-dev/setup-vp@v1
         with:
           node-version: ${{ matrix.node-version }}
