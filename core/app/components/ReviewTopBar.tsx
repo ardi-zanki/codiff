@@ -43,7 +43,7 @@ export function ReviewTopBar<Mode extends string>({
         {leading}
         <button
           aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          className="sidebar-toggle-button"
+          className="review-top-bar-icon-button sidebar-toggle-button"
           onClick={onToggleSidebar}
           title={toggleTitle}
           type="button"

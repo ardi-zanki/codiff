@@ -18,6 +18,7 @@
   "type": "module",
   "sideEffects": [
     "./App.css",
+    "./Desktop.css",
     "./dist/*.css"
   ],
   "main": "./dist/index.mjs",

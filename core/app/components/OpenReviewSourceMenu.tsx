@@ -138,7 +138,7 @@ export function OpenReviewSourceMenu({ onOpen }: { onOpen: (kind: OpenReviewSour
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label="Open a PR, branch, or commit"
-        className="open-review-source-trigger"
+        className="open-review-source-trigger review-top-bar-icon-button"
         id="open-review-source-trigger"
         onClick={open ? close : openMenu}
         onKeyDown={handleTriggerKeyDown}
