@@ -206,7 +206,7 @@ test('authenticates gh from the login shell environment when the app inherited n
   await writeFile(
     fakeShell,
     `#!/bin/sh
-GH_TOKEN='from-login-shell' exec /bin/sh -c "$3"
+GH_TOKEN='from-login-shell' exec /bin/sh -c "$4"
 `,
   );
   await writeFile(
@@ -266,7 +266,7 @@ test('prefers the process environment over the login shell for gh', async () => 
   await writeFile(
     fakeShell,
     `#!/bin/sh
-GH_TOKEN='from-login-shell' exec /bin/sh -c "$3"
+GH_TOKEN='from-login-shell' exec /bin/sh -c "$4"
 `,
   );
   await writeFile(

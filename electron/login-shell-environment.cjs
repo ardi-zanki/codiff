@@ -13,8 +13,8 @@ const VARIABLE_NAME = /^[A-Za-z_][A-Za-z0-9_]*$/;
 const cache = new Map();
 
 /**
- * The environment of the user's login shell, resolved once per shell and
- * cached. GUI launches inherit launchd's minimal environment, so variables
+ * The environment of the user's interactive login shell, resolved once per
+ * shell and cached. GUI launches inherit launchd's minimal environment, so variables
  * like `GH_TOKEN` may only exist in the login shell; resolving them lets CLI
  * spawns behave the way they would in a terminal. Resolution failures yield
  * an empty environment instead of an error.
@@ -36,7 +36,7 @@ const getLoginShellEnvironment = () => {
 };
 
 /**
- * Resolution settles no matter how the shell behaves: the deadline
+ * Resolution settles no matter how the interactive login shell behaves: the deadline
  * force-kills a shell that ignores termination and releases a stdout pipe
  * kept open by a background child the shell left behind, the case where
  * `close` trails `exit` indefinitely. A dump the shell completed cleanly
@@ -48,7 +48,7 @@ const getLoginShellEnvironment = () => {
  */
 const resolveLoginShellEnvironment = (shell, timeout = RESOLUTION_TIMEOUT) =>
   new Promise((resolve) => {
-    const child = spawn(shell, ['-l', '-c', ENVIRONMENT_COMMAND], {
+    const child = spawn(shell, ['-l', '-i', '-c', ENVIRONMENT_COMMAND], {
       stdio: ['ignore', 'pipe', 'ignore'],
     });
     /** @type {Array<Buffer>} */

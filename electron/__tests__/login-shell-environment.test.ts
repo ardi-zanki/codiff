@@ -1,4 +1,4 @@
-import { chmod, readFile, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { expect, test } from 'vite-plus/test';
@@ -16,6 +16,12 @@ const { getLoginShellEnvironment, resolveLoginShellEnvironment } =
       timeout?: number,
     ) => Promise<Readonly<Record<string, string>>>;
   };
+const { findExecutableOnPath } = require('../agent-shared.cjs') as {
+  findExecutableOnPath: (command: string) => string | null;
+};
+
+const fishPath = findExecutableOnPath('fish');
+const zshPath = findExecutableOnPath('zsh');
 
 const createFakeLoginShell = async (directory: string, body: string) => {
   const shellPath = join(directory, 'fake-login-shell');
@@ -31,8 +37,11 @@ test('resolves variables exported by the login shell', async () => {
   const shell = await createFakeLoginShell(
     directory.path,
     `echo 'Using Node v24.15.0'
+if [ "$1" != '-l' ] || [ "$2" != '-i' ] || [ "$3" != '-c' ]; then
+  exit 1
+fi
 CODIFF_FAKE_TOKEN='from-login-shell' CODIFF_FAKE_MULTILINE='first line
-second line' exec /bin/sh -c "$3"
+second line' exec /bin/sh -c "$4"
 `,
   );
   await using _environment = createTemporaryEnvironment({ SHELL: shell });
@@ -41,6 +50,37 @@ second line' exec /bin/sh -c "$3"
 
   expect(environment.CODIFF_FAKE_TOKEN).toBe('from-login-shell');
   expect(environment.CODIFF_FAKE_MULTILINE).toBe('first line\nsecond line');
+});
+
+test.skipIf(!fishPath)('resolves variables exported by Fish config', async () => {
+  await using directory = await createTemporaryDirectory('codiff-fish-login-shell-');
+  const fishConfigDirectory = join(directory.path, 'fish');
+  await mkdir(fishConfigDirectory);
+  await writeFile(
+    join(fishConfigDirectory, 'config.fish'),
+    'set --export CODIFF_FAKE_TOKEN from-fish-config\n',
+  );
+  await using _environment = createTemporaryEnvironment({
+    HOME: directory.path,
+    XDG_CONFIG_HOME: directory.path,
+  });
+
+  const environment = await resolveLoginShellEnvironment(fishPath!);
+
+  expect(environment.CODIFF_FAKE_TOKEN).toBe('from-fish-config');
+});
+
+test.skipIf(!zshPath)('resolves variables exported by zshrc', async () => {
+  await using directory = await createTemporaryDirectory('codiff-zsh-login-shell-');
+  await writeFile(join(directory.path, '.zshrc'), "export CODIFF_FAKE_TOKEN='from-zsh-config'\n");
+  await using _environment = createTemporaryEnvironment({
+    HOME: directory.path,
+    ZDOTDIR: directory.path,
+  });
+
+  const environment = await resolveLoginShellEnvironment(zshPath!);
+
+  expect(environment.CODIFF_FAKE_TOKEN).toBe('from-zsh-config');
 });
 
 test('returns an empty environment when the login shell fails', async () => {
@@ -63,7 +103,7 @@ test('resolves each login shell once, even under concurrent calls', async () => 
   const shell = await createFakeLoginShell(
     directory.path,
     `echo run >> '${runsPath}'
-CODIFF_FAKE_TOKEN='from-login-shell' exec /bin/sh -c "$3"
+CODIFF_FAKE_TOKEN='from-login-shell' exec /bin/sh -c "$4"
 `,
   );
   await using _environment = createTemporaryEnvironment({ SHELL: shell });
@@ -85,7 +125,7 @@ test('salvages a clean environment dump when a background child holds stdout ope
   // that inherits stdout, so `close` stays hours away from `exit`.
   const shell = await createFakeLoginShell(
     directory.path,
-    `CODIFF_FAKE_TOKEN='from-login-shell' /bin/sh -c "$3"
+    `CODIFF_FAKE_TOKEN='from-login-shell' /bin/sh -c "$4"
 sleep 10 &
 exit 0
 `,
