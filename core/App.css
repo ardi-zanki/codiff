@@ -768,6 +768,29 @@ html[data-codiff-platform='darwin'] .workspace-top-bar {
   white-space: nowrap;
 }
 
+.review-top-bar-repository-path {
+  align-items: center;
+  display: flex;
+  flex: 0 1 auto;
+}
+
+.review-top-bar-repository-head {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.review-top-bar-repository-tail {
+  flex: none;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .review-top-bar-branch {
   align-items: center;
   border-radius: 14px;
@@ -3816,6 +3839,7 @@ diffs-container .review-comment-thread {
 
 .empty-panel code {
   color: var(--text);
+  overflow-wrap: anywhere;
 }
 
 .empty-panel-menu-path {
